@@ -3,12 +3,11 @@ import { createReadStream, writeFileSync } from 'fs'
 
 const filePath = "./input/MNS_google_pdct_feed-KSA_EN.csv"
 
-const filterOptions: string[] = ['id', 'title', 'link', 'price', 'color'];
+const filterOptions: string = "id=60624128023&item_group_id='T593114T'&gender='Women'"
 
+const filterCondition = filterOptions.split('&').map(condition => `record.${condition}`).join('&').replaceAll('=', '==')
 const parseCSV = parse({
-    columns: header => header.map((column: string) => {
-        if(filterOptions.includes(column)) return column
-    }),
+    columns: header => header.map((column: string) => column),
     trim: true
 });
 
@@ -16,10 +15,10 @@ const parseCSV = parse({
     const parser = createReadStream(filePath).pipe(parseCSV)
 
     const records = []
-
     for await (const record of parser) {
-        records.push(record)
+        if(eval(filterCondition)) {
+            records.push(record)
+        }
     }
-
     writeFileSync('./output/result.json', JSON.stringify(records))
 })()
